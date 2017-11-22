@@ -24,10 +24,10 @@ class defaultdict(collections.defaultdict):
 
 def gain(storage, attr, attr_objective, DEBUG=False):
 
+    counter_class = Counter(storage[attr_objective])
     if DEBUG:
-        print('attr: ', attr, ', attr_objective:', attr_objective,'\n')
+        print('counter_class',counter_class,'attr: ', attr, ', attr_objective:', attr_objective,'\n')
         print(storage)
-    counter_class = Counter(tennis_data[attr_objective])
     total = len(storage[attr_objective])
     """
     Entropia -> quão balanceado está a base. Quanto maior a entropia menos balanceado está.
@@ -35,18 +35,21 @@ def gain(storage, attr, attr_objective, DEBUG=False):
      1 - Totalmente balanceada
      (0,1) - Valores diferentes
     """
-    kk = []
+    counter_filtered = []
     for name in counter_class:
+        if DEBUG:
+            print('name',name,'counter_class[name]',counter_class[name])
         if counter_class[name] != total and total != 0:
-            kk.append(counter_class[name] / total)
+            counter_filtered.append(counter_class[name] / total)
         elif total == 0:
-            kk.append(counter_class[name])
+            counter_filtered.append(counter_class[name])
         else:
-            kk.append(total)
+            counter_filtered.append(total)
 
-    kkkk = [value * math.log(value, 2) for value in kk]
-    goal_entropy = reduce(lambda x, y: - x - y, kkkk)
-
+    entropy = [value * math.log(value, 2) for value in counter_filtered]
+    goal_entropy = reduce(lambda x, y: - x - y, entropy)
+    if DEBUG:
+        print('counter_filtered', counter_filtered,'entropy', entropy)
     classes = storage[attr].unique()
     if DEBUG:
         print('classes', classes)
@@ -103,4 +106,22 @@ if __name__ == "__main__":
         print('Gain "%s" related to "%s": %.4f' % (attr, attr_objective, value))
         if value > best:
             best, b_key = value, attr
-    print('\n"%s" is the best attribute: %.3f' % (b_key, best))
+    print('\n"%s" is the best attribute: %.3f' % (b_key, best),'\n')
+    for attr in tennis_data[b_key].unique():
+        sub_tree_best = -math.inf
+        sub_tree_key = None
+        print('attr:', attr,'\n')
+        data = tennis_data[tennis_data[b_key]==attr]
+        print(data,'\n')
+        counter = list(Counter(data[attr_objective]))
+        if len(counter) == 1:
+            sub_tree_best = counter.pop()
+        else:
+            # data = tennis_data[tennis_data[b_key]=='Sunny']
+            columns = list(set(data.columns)-set([b_key, attr_objective]))
+            for col in columns:
+                value = gain(data, col, attr_objective)
+                print('Gain "%s" related to "%s": %.4f' % (col, attr_objective, value))
+                if value > sub_tree_best:
+                    sub_tree_best, sub_tree_key = value, col
+            print('\n"%s" is the best attribute: %.3f' % (sub_tree_key, sub_tree_best),'\n')
