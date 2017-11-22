@@ -25,7 +25,8 @@ class defaultdict(collections.defaultdict):
 def gain(storage, attr, attr_objective, DEBUG=False):
 
     if DEBUG:
-        print(storage, attr, attr_objective)
+        print('attr: ', attr, ', attr_objective:', attr_objective,'\n')
+        print(storage)
     counter_class = Counter(tennis_data[attr_objective])
     total = len(storage[attr_objective])
     """
@@ -72,21 +73,22 @@ def gain(storage, attr, attr_objective, DEBUG=False):
                 dict_sum['individual']['NA'][value] += counter_class[item]
             dict_sum['total'][item] += counter_class[item]
 
-    if DEBUG:
-        print('dict_sum',dict_sum, 'total', total)
     percentage = {item: dict_sum['total'][item] / total for item in dict_sum['total']}
     if DEBUG:
-        print('percentage', percentage)
+        print('dict_sum',dict_sum, 'total', total)
+        for item in dict_sum['total']:
+            print('item:', item, ' %s/%s * log(%s/%s, 2) = %s' % (dict_sum['total'][item], total, dict_sum['total'][item], total, percentage[item]))
+        print('goal_entropy', goal_entropy,'\n')
     gain = goal_entropy
-    if DEBUG:
-        print('goal_entropy', goal_entropy)
-    if DEBUG:
-        print('\n')
     for item in dict_sum['individual']:
         entropy = 0
         for key in dict_sum['individual'][item]:
             x = dict_sum['individual'][item][key] / dict_sum['total'][item]
-            entropy += - x * math.log(x,2)
+            if DEBUG:
+                print('item:', item, ', key:', key, 'value:', x, ' %s/%s * log(%s/%s, 2)' % (dict_sum['individual'][item][key],dict_sum['total'][item],dict_sum['individual'][item][key],dict_sum['total'][item]))
+            entropy += - x * math.log(x,2) if len(dict_sum['individual'][item]) > 1 else 0
+        if DEBUG:
+            print('entropy', entropy)
         gain -= percentage[item] * entropy
 
     return gain
