@@ -32,5 +32,7 @@ naiveBayes = function(data, test)
 
 test = tennis[round(runif(1, min = 1, max = nrow(tennis))),-1]
 test$play = NA
+#test[] = c("Sunny", "Mild", "High", "Strong", NA)
+
 #test = tennis[1,-1]
 naiveBayes(tennis[,-1], test)
